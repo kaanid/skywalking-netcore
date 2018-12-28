@@ -63,11 +63,11 @@ namespace SkyWalking.AspNet
                 foreach (var item in contextCarrier.Items)
                     request.Headers.Add(item.HeadKey, item.HeadValue);
 
-                if(request.Method.Method!="GET")
+                if (request.Method.Method != "GET")
                 {
                     // record request body data
-                    string str =await request.Content.ReadAsStringAsync();
-                    span.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),new Dictionary<string, object> { { "Body",str} });
+                    string bodyStr = await request.Content.ReadAsStringAsync();
+                    span.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), new Dictionary<string, object> { { "Body", bodyStr } });
                 }
 
                 var response = await base.SendAsync(request, cancellationToken);

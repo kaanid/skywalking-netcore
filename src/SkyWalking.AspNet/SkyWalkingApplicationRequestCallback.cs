@@ -61,19 +61,18 @@ namespace SkyWalking.AspNet
             httpRequestSpan.SetComponent(ComponentsDefine.AspNet);
             Tags.Url.Set(httpRequestSpan, httpContext.Request.Path);
             Tags.HTTP.Method.Set(httpRequestSpan, httpContext.Request.HttpMethod);
-            
-            var dict = new Dictionary<string, object>
+
+            var dictLog = new Dictionary<string, object>
                 {
                     {"event", "AspNet BeginRequest"},
                     {"message", $"Request starting {httpContext.Request.Url.Scheme} {httpContext.Request.HttpMethod} {httpContext.Request.Url.OriginalString}"}
                 };
 
             // record request body data
-            SetBodyData(httpContext.Request, dict);
+            SetBodyData(httpContext.Request, dictLog);
 
-            httpRequestSpan.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),dict);
+            httpRequestSpan.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), dictLog);
 
-            httpContext.Items.Add("span", httpRequestSpan);
             httpContext.Items.Add("span_Context", ContextManager.ActiveContext);
         }
 
@@ -96,18 +95,15 @@ namespace SkyWalking.AspNet
             if (httpRequestSpan == null)
             {
                 // ContextManager.ActiveSpan is null, from httpContext.Items
-                if (!httpContext.Items.Contains("span"))
-                    return;
-
-                httpRequestSpan= httpContext.Items["span"] as ISpan;
-                if (httpRequestSpan == null)
-                    return;
-
                 if(!httpContext.Items.Contains("span_Context"))
                     return;
 
                 context = httpContext.Items["span_Context"] as ITracerContext;
                 if (context == null)
+                    return;
+
+                httpRequestSpan = context.ActiveSpan;
+                if (httpRequestSpan == null)
                     return;
             }
 
@@ -131,6 +127,7 @@ namespace SkyWalking.AspNet
                     {"event", "AspNet EndRequest"},
                     {"message", $"Request finished {httpContext.Response.StatusCode} {httpContext.Response.ContentType}"}
                 });
+            
             ContextManager.StopSpan(httpRequestSpan, context);
         }
 
@@ -149,8 +146,8 @@ namespace SkyWalking.AspNet
                 var stearm = request.GetBufferedInputStream();
                 using (StreamReader sr = new StreamReader(stearm))
                 {
-                    var str = sr.ReadToEnd();
-                    dict.Add("Body", str);
+                    var bodyStr = sr.ReadToEnd();
+                    dict.Add("Body", bodyStr);
                 }
             }
         }
