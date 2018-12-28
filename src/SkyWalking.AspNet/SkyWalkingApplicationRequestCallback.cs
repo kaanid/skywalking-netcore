@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Web;
 using SkyWalking.Components;
 using SkyWalking.Config;
@@ -40,6 +41,9 @@ namespace SkyWalking.AspNet
 
         public void ApplicationOnBeginRequest(object sender, EventArgs e)
         {
+            if (_config.Close)
+                return;
+
             var httpApplication = sender as HttpApplication;
             var httpContext = httpApplication.Context;
 
@@ -47,7 +51,7 @@ namespace SkyWalking.AspNet
             {
                 //asp.net Exclude OPTIONS request
                 return;
-            }
+            } 
 
             var carrier = _contextCarrierFactory.Create();
             foreach (var item in carrier.Items)
@@ -57,12 +61,16 @@ namespace SkyWalking.AspNet
             httpRequestSpan.SetComponent(ComponentsDefine.AspNet);
             Tags.Url.Set(httpRequestSpan, httpContext.Request.Path);
             Tags.HTTP.Method.Set(httpRequestSpan, httpContext.Request.HttpMethod);
-            httpRequestSpan.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                new Dictionary<string, object>
+
+            var dict = new Dictionary<string, object>
                 {
                     {"event", "AspNet BeginRequest"},
                     {"message", $"Request starting {httpContext.Request.Url.Scheme} {httpContext.Request.HttpMethod} {httpContext.Request.Url.OriginalString}"}
-                });
+                };
+
+            SetBodyData(httpContext.Request, dict);
+
+            httpRequestSpan.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),dict);
 
             httpContext.Items.Add("span", httpRequestSpan);
             httpContext.Items.Add("span_Context", ContextManager.ActiveContext);
@@ -70,6 +78,9 @@ namespace SkyWalking.AspNet
 
         public void ApplicationOnEndRequest(object sender, EventArgs e)
         {
+            if (_config.Close)
+                return;
+
             var httpApplication = sender as HttpApplication;
             var httpContext = httpApplication.Context;
             ITracerContext context=null;
@@ -120,6 +131,20 @@ namespace SkyWalking.AspNet
                     {"message", $"Request finished {httpContext.Response.StatusCode} {httpContext.Response.ContentType}"}
                 });
             ContextManager.StopSpan(httpRequestSpan, context);
+        }
+
+        private void SetBodyData(HttpRequest request, Dictionary<string, object> dict)
+        {
+            if (request.HttpMethod != "GET")
+            {
+                if (dict == null)
+                    dict = new Dictionary<string, object>();
+
+                var stearm = request.GetBufferedInputStream();
+                StreamReader sr = new StreamReader(stearm);
+                var str = sr.ReadToEnd();
+                dict.Add("Body", str);
+            }
         }
     }
 }

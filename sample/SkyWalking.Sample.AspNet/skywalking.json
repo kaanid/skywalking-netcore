@@ -1,6 +1,7 @@
 {
   "SkyWalking": {
     "ApplicationCode": "SkyWalking.Sample.AspNet",
+    "Close": false,
     "SpanLimitPerSegment": 300,
     "Sampling": {
       "SamplePer3Secs": -1

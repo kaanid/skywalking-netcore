@@ -26,5 +26,7 @@ namespace SkyWalking.Config
         public string ApplicationCode { get; set; }
 
         public int SpanLimitPerSegment { get; set; } = 300;
+
+        public bool Close { set; get; }
     }
 }
