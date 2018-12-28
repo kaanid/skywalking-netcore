@@ -11,7 +11,7 @@ namespace SkyWalking.Sample.AspNet.Controllers
         public async Task<IHttpActionResult> Get()
         {
             var httpClient = new HttpClient(new HttpTracingHandler());
-            var values = await httpClient.GetStringAsync("http://testlocal.hzfanews.com:8801/fanews/usermanage/User/test");
+            var values = await httpClient.GetStringAsync("http://localhost:5001/api/values");
             return Json(values);
         }
 
