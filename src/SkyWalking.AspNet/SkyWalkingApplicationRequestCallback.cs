@@ -147,9 +147,11 @@ namespace SkyWalking.AspNet
                     dict = new Dictionary<string, object>();
 
                 var stearm = request.GetBufferedInputStream();
-                StreamReader sr = new StreamReader(stearm);
-                var str = sr.ReadToEnd();
-                dict.Add("Body", str);
+                using (StreamReader sr = new StreamReader(stearm))
+                {
+                    var str = sr.ReadToEnd();
+                    dict.Add("Body", str);
+                }
             }
         }
     }
