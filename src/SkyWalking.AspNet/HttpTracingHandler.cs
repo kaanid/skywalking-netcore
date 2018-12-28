@@ -65,6 +65,7 @@ namespace SkyWalking.AspNet
 
                 if(request.Method.Method!="GET")
                 {
+                    // record request body data
                     string str =await request.Content.ReadAsStringAsync();
                     span.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),new Dictionary<string, object> { { "Body",str} });
                 }

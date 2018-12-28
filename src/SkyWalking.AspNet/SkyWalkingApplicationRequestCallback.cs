@@ -61,13 +61,14 @@ namespace SkyWalking.AspNet
             httpRequestSpan.SetComponent(ComponentsDefine.AspNet);
             Tags.Url.Set(httpRequestSpan, httpContext.Request.Path);
             Tags.HTTP.Method.Set(httpRequestSpan, httpContext.Request.HttpMethod);
-
+            
             var dict = new Dictionary<string, object>
                 {
                     {"event", "AspNet BeginRequest"},
                     {"message", $"Request starting {httpContext.Request.Url.Scheme} {httpContext.Request.HttpMethod} {httpContext.Request.Url.OriginalString}"}
                 };
 
+            // record request body data
             SetBodyData(httpContext.Request, dict);
 
             httpRequestSpan.Log(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),dict);
@@ -133,6 +134,11 @@ namespace SkyWalking.AspNet
             ContextManager.StopSpan(httpRequestSpan, context);
         }
 
+        /// <summary>
+        /// record request body data
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="dict"></param>
         private void SetBodyData(HttpRequest request, Dictionary<string, object> dict)
         {
             if (request.HttpMethod != "GET")
