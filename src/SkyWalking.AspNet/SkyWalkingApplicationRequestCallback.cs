@@ -65,7 +65,7 @@ namespace SkyWalking.AspNet
             var dictLog = new Dictionary<string, object>
                 {
                     {"event", "AspNet BeginRequest"},
-                    {"message", $"Request starting {httpContext.Request.Url.Scheme} {httpContext.Request.HttpMethod} {httpContext.Request.Url.OriginalString}"}
+                    {"message", $"Request starting {httpContext.Request.Url.Scheme} {httpContext.Request.HttpMethod} {httpContext.Request.Url.OriginalString} {httpContext.Request.ContentType}"}
                 };
 
             // record request body data
