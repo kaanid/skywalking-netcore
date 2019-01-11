@@ -146,9 +146,10 @@ namespace SkyWalking.AspNet
             if (dict == null)
                 dict = new Dictionary<string, object>();
 
+            dict.Add("ContentLength", request.ContentLength);
+
             if (request.ContentType?.ToLower().Contains("multipart/form-data")??false || request.ContentLength == 0 || request.ContentLength > 200)
             {
-                dict.Add("ContentLength", request.ContentLength);
                 return;
             }
 
